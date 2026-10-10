@@ -24,7 +24,9 @@
 		- [2. Crear y activar el entorno virtual](#2-crear-y-activar-el-entorno-virtual)
 		- [3. Instalar dependencias](#3-instalar-dependencias)
 		- [4. Configurar la API KEY](#4-configurar-la-api-key)
-		- [5. Ejecutar ALESSIA](#5-ejecutar-alessia)
+		- [5. Construir el índice vectorial](#5-construir-el-índice-vectorial)
+		- [6. Ejecutar ALESSIA](#6-ejecutar-alessia)
+		- [7. Ejecutar las pruebas](#7-ejecutar-las-pruebas)
 	- [13. Roadmap](#13-roadmap)
 	- [14. Author \& Licence](#14-author--licence)
 
@@ -234,21 +236,28 @@ Challenge_Alura_Agent/
 │   │   ├── __init__.py
 │   │   └── agent_service.py
 │   └── settings.py
+├── scripts/
+│   ├── __init__.py
+│   └── build_index.py
 ├── tests/
 │   ├── __init__.py
+│   ├── conftest.py
 │   ├── test_agent_service.py
 │   ├── test_bootstrap.py
+│   ├── test_build_index.py
 │   ├── test_chat.py
 │   ├── test_chunk.py
 │   ├── test_cleaner.py
 │   ├── test_embedder.py
 │   ├── test_generation_integration.py
 │   ├── test_generation.py
+│   ├── test_llm_client.py
 │   ├── test_loaders.py
 │   ├── test_prompt_builder.py
 │   ├── test_reranker.py
 │   ├── test_retriever.py
 │   └── test_vector_store.py
+├── .env.example
 ├── .gitignore
 ├── pytest.ini
 ├── README.md
@@ -318,15 +327,36 @@ pip install -r requirements.txt
 
 ### 4. Configurar la API KEY
 
-Crear un archivo .env en la raíz del proyecto, tomando como referencia .env.example:
+Copiar el archivo de ejemplo y completar la credencial:
+
+```bash
+cp .env.example .env
+```
+
+Las variables disponibles están documentadas en `.env.example`. La única obligatoria es:
+
 ```env
 OPENROUTER_API_KEY=tu_api_key
 ```
 
-### 5. Ejecutar ALESSIA
+### 5. Construir el índice vectorial
+
+El índice (`data/vector_store/`) no se versiona: se genera a partir de los documentos oficiales de `data/raw/`.
+
+```bash
+python scripts/build_index.py --recreate
+```
+
+### 6. Ejecutar ALESSIA
 
 ```bash
 streamlit run app/streamlit_app.py
+```
+
+### 7. Ejecutar las pruebas
+
+```bash
+python -m pytest
 ```
 
 ---

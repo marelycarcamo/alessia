@@ -87,11 +87,24 @@ def _get_setting(
 # Configuración del proveedor LLM
 # --------------------------------------------------------------
 
-DEFAULT_PROVIDER = "openrouter"
+DEFAULT_PROVIDER = (
+    _get_setting(
+        "DEFAULT_PROVIDER",
+        "openrouter",
+    )
+    or "openrouter"
+).strip().lower()
 
 
 OPENROUTER_API_KEY = _get_setting(
     "OPENROUTER_API_KEY"
+)
+
+
+# Permite apuntar a un endpoint alternativo (proxy o gateway propio).
+# Si no se configura, el SDK utiliza el servicio oficial de OpenRouter.
+OPENROUTER_API_BASE_URL = _get_setting(
+    "OPENROUTER_API_BASE_URL"
 )
 
 
@@ -101,9 +114,29 @@ OPENROUTER_MODEL = _get_setting(
 )
 
 
-LLM_TEMPERATURE = float(
-    _get_setting(
+def _get_temperature() -> float | None:
+    """
+    Obtiene la temperatura configurada para el modelo de lenguaje.
+
+    Returns
+    -------
+    float | None
+        Temperatura configurada, o None si el valor no es utilizable.
+    """
+
+    raw_value = _get_setting(
         "LLM_TEMPERATURE",
         "0.2",
     )
-)
+
+    if raw_value is None:
+        return None
+
+    try:
+        return float(raw_value)
+
+    except (TypeError, ValueError):
+        return None
+
+
+LLM_TEMPERATURE = _get_temperature()

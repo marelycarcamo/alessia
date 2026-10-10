@@ -25,7 +25,7 @@ Proyecto:
     en la comuna de Valdivia.
 """
 
-from src.processing.generation import build_prompt
+from src.processing.prompt_builder import build_prompt
 from src.models.chunk import Chunk
 
 

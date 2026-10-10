@@ -24,7 +24,9 @@ Proyecto:
     en la comuna de Valdivia.
 """
 
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from chromadb.api.models.Collection import Collection
 from sentence_transformers import CrossEncoder, SentenceTransformer
@@ -33,6 +35,22 @@ from src.processing.generation import generate_answer
 from src.processing.reranker import rerank_chunks
 from src.processing.retriever import retrieve_context
 from src.processing.vector_store import get_or_create_collection
+
+
+@dataclass
+class RAGAnswer:
+    """
+    Resultado de una consulta al pipeline RAG.
+
+    Mantiene unida la respuesta generada y los fragmentos documentales
+    utilizados durante su construcción, permitiendo que la capa de
+    presentación muestre las fuentes consultadas.
+    """
+
+    answer: str
+    sources: list[dict[str, Any]] = field(
+        default_factory=list
+    )
 
 
 class AgentService:
@@ -110,7 +128,7 @@ class AgentService:
     def ask(
         self,
         question: str,
-    ) -> str:
+    ) -> RAGAnswer:
         """
         Ejecuta el pipeline RAG completo.
 
@@ -121,21 +139,94 @@ class AgentService:
 
         Returns
         -------
-        str
-            Respuesta generada por el modelo de lenguaje.
+        RAGAnswer
+            Respuesta generada por el modelo de lenguaje junto con los
+            fragmentos documentales utilizados para construirla.
+
+        Notes
+        -----
+        Si no se recupera contexto, o si el proveedor del modelo de
+        lenguaje no está disponible, se retorna una respuesta
+        informativa en lugar de propagar la excepción a la interfaz.
         """
 
         chunks = self._retrieve_context(question)
+
+        # Sin contexto recuperado no se consulta al modelo: responder
+        # sin documentación contradice el propósito del sistema.
+        if not chunks:
+
+            return RAGAnswer(
+                answer=(
+                    "No encontré información sobre tu consulta en la "
+                    "documentación oficial disponible.\n\n"
+                    "Puedes intentar reformular la pregunta o consultar "
+                    "directamente con la Municipalidad de Valdivia. "
+                    "En caso de emergencia, comunícate con Bomberos (132), "
+                    "Carabineros (133) o SAMU (131)."
+                ),
+                sources=[],
+            )
 
         ranked_chunks = self._rerank_chunks(
             question,
             chunks,
         )
 
-        return self._generate_answer(
-            question,
-            ranked_chunks,
+        try:
+            answer = self._generate_answer(
+                question,
+                ranked_chunks,
+            )
+
+        except ValueError as error:
+
+            # Errores de configuración del proveedor (por ejemplo, la
+            # ausencia de credenciales) se informan al usuario.
+            return RAGAnswer(
+                answer=(
+                    "ALESSIA no pudo generar la respuesta en este "
+                    f"momento ({error}).\n\n"
+                    "Revisa la configuración del servicio o intenta "
+                    "nuevamente en unos minutos."
+                ),
+                sources=[],
+            )
+
+        return RAGAnswer(
+            answer=answer,
+            sources=self._build_sources(ranked_chunks),
         )
+
+    def _build_sources(
+        self,
+        chunks,
+    ) -> list[dict[str, Any]]:
+        """
+        Construye el detalle de los fragmentos utilizados como contexto.
+
+        Permite mantener la trazabilidad entre la respuesta generada y
+        la documentación oficial que la respalda.
+        """
+
+        sources = []
+
+        for chunk in chunks:
+
+            metadata = dict(chunk.metadata)
+
+            sources.append(
+                {
+                    "document_id": chunk.document_id,
+                    "chunk_index": chunk.chunk_index,
+                    "source": metadata.get("source", ""),
+                    "title": metadata.get("title", ""),
+                    "page": metadata.get("page"),
+                    "rerank_score": metadata.get("rerank_score"),
+                }
+            )
+
+        return sources
 
     def _retrieve_context(
         self,

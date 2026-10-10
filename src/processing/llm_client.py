@@ -30,6 +30,8 @@ from openrouter import OpenRouter
 
 from src.settings import (
     DEFAULT_PROVIDER,
+    LLM_TEMPERATURE,
+    OPENROUTER_API_BASE_URL,
     OPENROUTER_API_KEY,
     OPENROUTER_MODEL,
 )
@@ -75,6 +77,9 @@ def generate_response(prompt: str) -> str:
 def _generate_openrouter(prompt: str) -> str:
     """
     Envía un prompt a OpenRouter utilizando el SDK oficial.
+
+    El modelo, la temperatura y, cuando se configura, la URL base del
+    servicio se obtienen desde la configuración del proyecto.
     """
 
     if not OPENROUTER_API_KEY:
@@ -82,16 +87,32 @@ def _generate_openrouter(prompt: str) -> str:
             "No se encontró la API Key de OpenRouter."
         )
 
-    with OpenRouter(api_key=OPENROUTER_API_KEY) as client:
+    # La URL base sólo se envía cuando está configurada, de modo que el
+    # SDK utilice su endpoint oficial por defecto en caso contrario.
+    client_options = {
+        "api_key": OPENROUTER_API_KEY,
+    }
 
-        response = client.chat.send(
-            model=OPENROUTER_MODEL,
-            messages=[
+    if OPENROUTER_API_BASE_URL:
+        client_options["server_url"] = OPENROUTER_API_BASE_URL
+
+    with OpenRouter(**client_options) as client:
+
+        request_options = {
+            "model": OPENROUTER_MODEL,
+            "messages": [
                 {
                     "role": "user",
                     "content": prompt,
                 }
             ],
+        }
+
+        if LLM_TEMPERATURE is not None:
+            request_options["temperature"] = LLM_TEMPERATURE
+
+        response = client.chat.send(
+            **request_options
         )
 
     return response.choices[0].message.content
