@@ -58,3 +58,38 @@ def test_build_prompt_contains_context():
         "Mantenerse informado"
         in prompt
     )
+
+
+def test_build_prompt_includes_emergency_contacts():
+    """El protocolo de emergencia debe llegar siempre con los teléfonos."""
+
+    prompt = build_prompt("Pregunta", [])
+
+    for telefono in ("132", "133", "131"):
+        assert telefono in prompt
+
+
+def test_build_prompt_forbids_external_knowledge():
+    """La restricción de fidelidad documental debe estar en el prompt."""
+
+    prompt = build_prompt("Pregunta", [])
+
+    assert "No uses conocimiento" in prompt
+    assert "CONTEXTO RECUPERADO" in prompt
+
+
+def test_build_prompt_respects_token_budget():
+    """Las instrucciones fijas no deben volver a inflarse.
+
+    Cada sección del prompt viaja en todas las llamadas al modelo, así que
+    su longitud se paga en tokens, latencia y costo. El presupuesto se fija
+    en caracteres porque es una aproximación conservadora de tokens (4
+    caracteres por token) y no requiere tokenizar en los tests.
+
+    Si este test falla, la pregunta correcta no es "¿subo el límite?", sino
+    "¿esta regla nueva repite algo que ya estaba escrito?".
+    """
+
+    prompt = build_prompt("Pregunta", [])
+
+    assert len(prompt) < 3800
