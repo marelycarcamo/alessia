@@ -61,10 +61,11 @@ class RAGAnswer:
 
 
 NO_CONTEXT_ANSWER = (
-    "No encontré información sobre tu consulta en la "
-    "documentación oficial disponible.\n\n"
-    "Puedes intentar reformular la pregunta o consultar "
-    "directamente con la Municipalidad de Valdivia. "
+    "No encontré información sobre tu consulta en los fragmentos "
+    "que pude recuperar de la documentación oficial.\n\n"
+    "Puedes darme más contexto (por ejemplo, de qué amenaza se trata "
+    "o en qué sector de la comuna) o reformular la pregunta. También "
+    "puedes consultar directamente con la Municipalidad de Valdivia. "
     "En caso de emergencia, comunícate con Bomberos (132), "
     "Carabineros (133) o SAMU (131)."
 )
@@ -238,6 +239,7 @@ class AgentService:
     def ask(
         self,
         question: str,
+        previous_question: str | None = None,
     ) -> RAGAnswer:
         """
         Ejecuta el pipeline RAG completo.
@@ -246,6 +248,11 @@ class AgentService:
         ----------
         question : str
             Consulta realizada por el usuario.
+
+        previous_question : str | None
+            Pregunta anterior del usuario, si existe. Se usa solo para
+            reintentar la búsqueda cuando el mensaje actual, por sí solo,
+            no recupera fragmentos utilizables.
 
         Returns
         -------
@@ -266,6 +273,11 @@ class AgentService:
         Los mensajes conversacionales (saludos, identidad, capacidades,
         agradecimientos) se responden igual: de forma determinista y sin
         consultar la documentación.
+
+        Si la consulta no recupera fragmentos utilizables y se recibe la
+        pregunta anterior, se reintenta la búsqueda anteponiéndola. Es un
+        mensaje de seguimiento apoyado en el turno previo, y sin ese
+        contexto la búsqueda suele no encontrar nada.
         """
 
         # Se resuelve antes de recuperar contexto y antes de llamar al
@@ -296,28 +308,36 @@ class AgentService:
 
         chunks = self._retrieve_context(question)
 
-        # Sin contexto recuperado no se consulta al modelo: responder
-        # sin documentación contradice el propósito del sistema.
-        if not chunks:
-
-            return RAGAnswer(
-                answer=NO_CONTEXT_ANSWER,
-                sources=[],
-            )
-
-        ranked_chunks = self._rerank_chunks(
-            question,
-            chunks,
-        )
-
         # Un fragmento puede pertenecer al tema correcto y aun así no
         # responder la consulta. Si ninguno alcanza el umbral, se prefiere
         # admitir que no hay información antes que construir una respuesta
         # sobre material que no la contiene: en una guía de emergencia, una
         # respuesta plausible pero vacía es peor que una negativa clara.
-        relevant_chunks = self._filter_relevant_chunks(
-            ranked_chunks
+        relevant_chunks = (
+            self._filter_relevant_chunks(
+                self._rerank_chunks(question, chunks)
+            )
+            if chunks
+            else []
         )
+
+        # Un mensaje de seguimiento suele apoyarse en el tema del turno
+        # anterior sin repetirlo ("¿y las vías de evacuación?"). Sin ese
+        # contexto la búsqueda no encuentra nada, y negar información que
+        # la documentación sí contiene es tan malo como inventarla.
+        if not relevant_chunks and previous_question:
+
+            consulta_ampliada = (
+                f"{previous_question} {question}"
+            )
+
+            chunks = self._retrieve_context(consulta_ampliada)
+
+            if chunks:
+
+                relevant_chunks = self._filter_relevant_chunks(
+                    self._rerank_chunks(consulta_ampliada, chunks)
+                )
 
         if not relevant_chunks:
 
