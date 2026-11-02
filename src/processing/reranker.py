@@ -25,9 +25,28 @@ Proyecto:
     para la comuna de Valdivia.
 """
 
+import math
+
 from sentence_transformers import CrossEncoder
 
 from src.models.chunk import Chunk
+
+
+def _sigmoid(value: float) -> float:
+    """
+    Convierte un logit en una probabilidad entre 0 y 1.
+
+    Se evita calcular `exp(-value)` con valores grandes porque desborda:
+    en logits muy negativos la exponencial crece sin control. Por eso se
+    usa la forma numéricamente estable según el signo.
+    """
+
+    if value >= 0:
+        return 1.0 / (1.0 + math.exp(-value))
+
+    exponential = math.exp(value)
+
+    return exponential / (1.0 + exponential)
 
 
 def rerank_chunks(
@@ -78,11 +97,26 @@ def rerank_chunks(
     )
 
     # Guarda el score dentro de metadata para mantener trazabilidad.
+    #
+    # Se almacenan dos valores:
+    #
+    # - rerank_score: el logit original. Sirve para depurar y comparar
+    #   corridas, pero no es interpretable para un usuario ("relevancia
+    #   -1.32" parece un error del sistema).
+    # - rerank_probability: el mismo valor convertido a probabilidad
+    #   entre 0 y 1. El CrossEncoder se entrena con entropía cruzada
+    #   binaria, así que la sigmoide del logit es su propia estimación de
+    #   "este fragmento responde a la consulta". Es lo que se puede
+    #   mostrar en la interfaz y lo que permite fijar un umbral con
+    #   significado.
     for chunk, score in zip(
         chunks,
         scores,
     ):
-        chunk.metadata["rerank_score"] = float(score)
+        logit = float(score)
+
+        chunk.metadata["rerank_score"] = logit
+        chunk.metadata["rerank_probability"] = _sigmoid(logit)
 
     # Ordena los fragmentos desde mayor a menor relevancia.
     ranked_chunks = sorted(

@@ -24,6 +24,7 @@ Proyecto:
     en la comuna de Valdivia.
 """
 
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -31,7 +32,9 @@ from typing import Any
 from chromadb.api.models.Collection import Collection
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
+from src import settings
 from src.processing.generation import generate_answer
+from src.processing.llm_client import LLMProviderError
 from src.processing.reranker import rerank_chunks
 from src.processing.retriever import retrieve_context
 from src.processing.vector_store import get_or_create_collection
@@ -51,6 +54,119 @@ class RAGAnswer:
     sources: list[dict[str, Any]] = field(
         default_factory=list
     )
+
+
+NO_CONTEXT_ANSWER = (
+    "No encontré información sobre tu consulta en la "
+    "documentación oficial disponible.\n\n"
+    "Puedes intentar reformular la pregunta o consultar "
+    "directamente con la Municipalidad de Valdivia. "
+    "En caso de emergencia, comunícate con Bomberos (132), "
+    "Carabineros (133) o SAMU (131)."
+)
+
+
+# --------------------------------------------------------------
+# Respuesta de emergencia en curso
+# --------------------------------------------------------------
+
+# Palabras que nombran una amenaza concreta en desarrollo.
+EMERGENCY_HAZARDS = (
+    "incendio",
+    "fuego",
+    "humo",
+    "inundacion",
+    "tsunami",
+    "terremoto",
+    "temblor",
+    "derrumbe",
+    "remocion en masa",
+)
+
+# Marcadores de que la amenaza está ocurriendo ahora y no se pregunta
+# de forma hipotética. Sin uno de estos, la consulta sigue el camino
+# normal: "¿qué previene los incendios forestales?" menciona incendios
+# pero no es una emergencia.
+EMERGENCY_URGENCY_MARKERS = (
+    "ahora",
+    "urgente",
+    "urgencia",
+    "ayuda",
+    "auxilio",
+    "socorro",
+    "mi casa",
+    "estoy",
+    "necesito",
+    "en curso",
+    "se esta",
+)
+
+# Respuesta determinista, sin modelo de lenguaje.
+#
+# Dos razones para no consultar al proveedor aquí:
+#
+# 1. Tiempo. Una respuesta medida tardó entre 40 y 113 segundos. En una
+#    emergencia eso es inaceptable.
+# 2. Disponibilidad. Si el proveedor falla, la respuesta de emergencia
+#    no puede ser lo que se caiga: es la única que no debería depender
+#    de un servicio externo.
+#
+# El contenido replica el protocolo del prompt, sin agregar
+# recomendaciones que no estén en la documentación.
+EMERGENCY_ANSWER = (
+    "**Esto es una emergencia. Tu seguridad es lo más importante.**\n\n"
+    "1. Aléjate del peligro y dirígete a un lugar seguro: en una "
+    "inundación o tsunami, a un sector alto; en un incendio, fuera del "
+    "área y contra el viento.\n"
+    "2. No vuelvas a entrar a una vivienda dañada ni intentes cruzar "
+    "agua en movimiento.\n"
+    "3. Llama a los servicios de emergencia: **Bomberos 132**, "
+    "**Carabineros 133**, **SAMU 131**.\n"
+    "4. Sigue las instrucciones de las autoridades en terreno.\n"
+    "5. Si es seguro, avisa a tus vecinos, en especial a personas "
+    "mayores o con dificultad para moverse.\n\n"
+    "ALESSIA es un asistente informativo. Para decisiones críticas, "
+    "sigue las instrucciones de las autoridades en terreno."
+)
+
+
+def _normalize_text(text: str) -> str:
+    """Pasa el texto a minúsculas y sin tildes para comparar términos."""
+
+    decomposed = unicodedata.normalize(
+        "NFKD",
+        text.lower(),
+    )
+
+    return "".join(
+        character
+        for character in decomposed
+        if not unicodedata.combining(character)
+    )
+
+
+def looks_like_emergency(question: str) -> bool:
+    """
+    Indica si la consulta describe una emergencia en curso.
+
+    Es una heurística de palabras clave, no un clasificador: nombra la
+    amenaza y un marcador de urgencia al mismo tiempo. Un modelo podría
+    hacerlo mejor, pero agregaría latencia justo donde no la hay.
+    """
+
+    text = _normalize_text(question)
+
+    has_hazard = any(
+        hazard in text
+        for hazard in EMERGENCY_HAZARDS
+    )
+
+    has_urgency = any(
+        marker in text
+        for marker in EMERGENCY_URGENCY_MARKERS
+    )
+
+    return has_hazard and has_urgency
 
 
 class AgentService:
@@ -111,12 +227,17 @@ class AgentService:
             vector_store_path=vector_store_path,
         )
 
+        # Los modelos se leen de settings y no se escriben aquí: el
+        # índice vectorial se construye con el mismo modelo, así que
+        # ambos lados deben salir de una única fuente. Si divergen, la
+        # búsqueda compara vectores de modelos distintos y no falla:
+        # devuelve fragmentos sin relación, que es peor.
         embedding_model = SentenceTransformer(
-            "sentence-transformers/all-MiniLM-L6-v2"
+            settings.EMBEDDING_MODEL
         )
 
         reranker_model = CrossEncoder(
-            "cross-encoder/ms-marco-MiniLM-L-6-v2"
+            settings.RERANKER_MODEL
         )
 
         return cls(
@@ -148,7 +269,21 @@ class AgentService:
         Si no se recupera contexto, o si el proveedor del modelo de
         lenguaje no está disponible, se retorna una respuesta
         informativa en lugar de propagar la excepción a la interfaz.
+
+        Las consultas que describen una emergencia en curso se responden
+        con un protocolo fijo, sin recuperar contexto ni llamar al
+        modelo de lenguaje.
         """
+
+        # Se resuelve antes de recuperar contexto y antes de llamar al
+        # modelo: una emergencia en curso no puede depender de que el
+        # retrieval acierte ni de que el proveedor responda.
+        if looks_like_emergency(question):
+
+            return RAGAnswer(
+                answer=EMERGENCY_ANSWER,
+                sources=[],
+            )
 
         chunks = self._retrieve_context(question)
 
@@ -157,14 +292,7 @@ class AgentService:
         if not chunks:
 
             return RAGAnswer(
-                answer=(
-                    "No encontré información sobre tu consulta en la "
-                    "documentación oficial disponible.\n\n"
-                    "Puedes intentar reformular la pregunta o consultar "
-                    "directamente con la Municipalidad de Valdivia. "
-                    "En caso de emergencia, comunícate con Bomberos (132), "
-                    "Carabineros (133) o SAMU (131)."
-                ),
+                answer=NO_CONTEXT_ANSWER,
                 sources=[],
             )
 
@@ -173,16 +301,35 @@ class AgentService:
             chunks,
         )
 
+        # Un fragmento puede pertenecer al tema correcto y aun así no
+        # responder la consulta. Si ninguno alcanza el umbral, se prefiere
+        # admitir que no hay información antes que construir una respuesta
+        # sobre material que no la contiene: en una guía de emergencia, una
+        # respuesta plausible pero vacía es peor que una negativa clara.
+        relevant_chunks = self._filter_relevant_chunks(
+            ranked_chunks
+        )
+
+        if not relevant_chunks:
+
+            return RAGAnswer(
+                answer=NO_CONTEXT_ANSWER,
+                sources=[],
+            )
+
         try:
             answer = self._generate_answer(
                 question,
-                ranked_chunks,
+                relevant_chunks,
             )
 
-        except ValueError as error:
+        except (ValueError, LLMProviderError) as error:
 
-            # Errores de configuración del proveedor (por ejemplo, la
-            # ausencia de credenciales) se informan al usuario.
+            # Se cubren los dos fallos posibles del proveedor: problemas
+            # de configuración (ValueError, por ejemplo una credencial
+            # ausente) y fallos del servicio (LLMProviderError, como un
+            # timeout). En ambos casos el usuario necesita un mensaje
+            # entendible, no un traceback.
             return RAGAnswer(
                 answer=(
                     "ALESSIA no pudo generar la respuesta en este "
@@ -195,7 +342,7 @@ class AgentService:
 
         return RAGAnswer(
             answer=answer,
-            sources=self._build_sources(ranked_chunks),
+            sources=self._build_sources(relevant_chunks),
         )
 
     def _build_sources(
@@ -223,6 +370,9 @@ class AgentService:
                     "title": metadata.get("title", ""),
                     "page": metadata.get("page"),
                     "rerank_score": metadata.get("rerank_score"),
+                    "rerank_probability": metadata.get(
+                        "rerank_probability"
+                    ),
                 }
             )
 
@@ -258,6 +408,29 @@ class AgentService:
             model=self.reranker_model,
             top_k=3,
         )
+
+    def _filter_relevant_chunks(
+        self,
+        chunks,
+    ):
+        """
+        Descarta los fragmentos que no alcanzan el umbral de relevancia.
+
+        El umbral se expresa como probabilidad y no como puntaje crudo
+        porque el puntaje del CrossEncoder no tiene escala interpretable:
+        varía según el modelo y no es comparable entre consultas. La
+        probabilidad sí permite fijar un valor con significado.
+        """
+
+        return [
+            chunk
+            for chunk in chunks
+            if chunk.metadata.get(
+                "rerank_probability",
+                0.0,
+            )
+            >= settings.RERANK_MIN_PROBABILITY
+        ]
 
     def _generate_answer(
         self,

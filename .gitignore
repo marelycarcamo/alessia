@@ -271,7 +271,7 @@ notebooks/data/vector_store/
 # Índice vectorial generado por el pipeline de ingesta.
 # Se reconstruye con: python scripts/build_index.py
 # Los documentos de origen (data/raw, data/processed) sí se versionan.
-data/vector_store/
+data/vector_store*/
 
 # Directorio de trabajo temporal utilizado por las pruebas.
 .pytest_work/

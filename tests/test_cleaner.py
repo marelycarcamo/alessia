@@ -84,6 +84,82 @@ def test_clean_document_preserves_document_fields():
     assert cleaned.metadata == document.metadata
 
 
+def test_clean_document_removes_repeated_page_headers():
+    """La cabecera que se repite en cada página no debe llegar al índice.
+
+    Es texto genérico: se parece a cualquier consulta y no responde
+    ninguna, pero ocupa lugar entre los fragmentos recuperados.
+    """
+
+    page = (
+        "ILUSTRE MUNICIPALIDAD DE VALDIVIA PLANTILLA\n"
+        "VERSION: 01\n"
+        "Contenido propio de la página {numero}.\n"
+        "3 de 33"
+    )
+
+    document = Document(
+        id="doc-003",
+        title="Plan",
+        source="plan.pdf",
+        file_type="pdf",
+        content="\n\n".join(
+            page.format(numero=numero)
+            for numero in range(6)
+        ),
+        metadata={},
+    )
+
+    cleaned = clean_document(document)
+
+    assert "ILUSTRE MUNICIPALIDAD DE VALDIVIA PLANTILLA" not in cleaned.content
+    assert "VERSION: 01" not in cleaned.content
+    assert "3 de 33" not in cleaned.content
+    assert "Contenido propio de la página 2." in cleaned.content
+
+
+def test_clean_document_keeps_line_repeated_twice():
+    """Repetirse dos veces no es ser cabecera.
+
+    Un encabezado de sección puede aparecer legítimamente más de una vez
+    y borrarlo perdería contexto real del documento.
+    """
+
+    document = Document(
+        id="doc-004",
+        title="Plan",
+        source="plan.pdf",
+        file_type="pdf",
+        content="Amenaza de tsunami\nTexto A\nAmenaza de tsunami\nTexto B",
+        metadata={},
+    )
+
+    cleaned = clean_document(document)
+
+    assert cleaned.content.count("Amenaza de tsunami") == 2
+
+
+def test_clean_document_keeps_repeated_bullets():
+    """Las viñetas se conservan aunque se repitan.
+
+    En una lista de contactos, "• Bomberos" puede aparecer muchas veces
+    y sigue siendo información útil.
+    """
+
+    document = Document(
+        id="doc-005",
+        title="Plan",
+        source="plan.pdf",
+        file_type="pdf",
+        content="\n".join("• Bomberos" for _ in range(8)),
+        metadata={},
+    )
+
+    cleaned = clean_document(document)
+
+    assert cleaned.content.count("• Bomberos") == 8
+
+
 
 """
 Ejecutar Bach: 
