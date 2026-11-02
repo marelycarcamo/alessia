@@ -1,0 +1,70 @@
+# ============================================================
+# Tema visual de ALESSIA
+# ============================================================
+# Los colores provienen del logo y del avatar del proyecto:
+#   verde azulado  #08A0A8  (la "A" del avatar)
+#   azul           #2059AC  (centro del degradado del logo)
+#   violeta        #6840A8  (extremo final del degradado)
+#
+# Para el color de acento se utiliza una variante ligeramente más
+# oscura del verde azulado, porque Streamlit escribe el texto de los
+# botones principales en blanco y sobre #08A0A8 el contraste no
+# alcanza el mínimo de accesibilidad.
+# ============================================================
+
+[theme]
+base = "light"
+
+# Color de acento: botones, enlaces y elementos activos.
+primaryColor = "#087F87"
+linkColor = "#087F87"
+
+# Superficies.
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F7F8"
+textColor = "#1B2A33"
+borderColor = "#D7E1E4"
+
+# Tipografía.
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+baseFontSize = 16
+baseFontWeight = 400
+headingFontSizes = ["34px", "27px", "22px", "18px", "16px", "14px"]
+headingFontWeights = [600, 600, 600, 600, 600, 600]
+codeFontSize = "14px"
+linkUnderline = false
+
+# Bordes y radios.
+baseRadius = "8px"
+buttonRadius = "8px"
+showWidgetBorder = true
+showSidebarBorder = true
+
+# Colores semánticos alineados con la identidad del proyecto.
+blueColor = "#2059AC"
+violetColor = "#6840A8"
+greenColor = "#1A7F5A"
+redColor = "#C0392B"
+orangeColor = "#B4690E"
+yellowColor = "#8A6D00"
+grayColor = "#57606A"
+
+# Series de gráficos: recorrido del degradado del logo.
+chartCategoricalColors = [
+    "#087F87",
+    "#2059AC",
+    "#6840A8",
+    "#0FA3A8",
+    "#3E7BC4",
+    "#8B5FC7",
+    "#57606A",
+]
+
+# Barra lateral: mismo fondo que el contenido, con jerarquía en los
+# elementos secundarios para que el logo y el avatar destaquen.
+[theme.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F7F8"
+borderColor = "#D7E1E4"

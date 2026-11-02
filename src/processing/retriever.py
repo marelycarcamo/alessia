@@ -72,9 +72,11 @@ def retrieve_context(
         k=k,
     )
 
-    documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    ids = results["ids"][0]
+    # ChromaDB devuelve listas vacías cuando la colección no contiene
+    # fragmentos, por lo que la ausencia de resultados no es un error.
+    documents = (results.get("documents") or [[]])[0] or []
+    metadatas = (results.get("metadatas") or [[]])[0] or []
+    ids = (results.get("ids") or [[]])[0] or []
 
     chunks = []
 

@@ -10,7 +10,9 @@ python-dotenv==1.2.2
 requests==2.34.2
 scikit-learn==1.9.0
 sentence-transformers==5.6.0
-streamlit==1.59.2
+streamlit==1.66.1
+tenacity==9.2.1
 torch==2.14.0
-torchvision==0.29.0
+torchvision==0.29.2
 transformers==5.13.0
+openai==2.41.1

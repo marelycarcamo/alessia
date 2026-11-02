@@ -13,6 +13,11 @@ env/
 ENV/
 env.bak/
 venv.bak/
+# Copias y entornos temporales que se crean al recrear el entorno
+.venv_broken/
+.venv_build_tmp/
+.venv_roto/
+.build_tmp/
 
 # --------------------------
 # ARCHIVOS PYTHON
@@ -262,5 +267,14 @@ service-account.json
 *.pfx
 
 notebooks/data/vector_store/
+
+# Índice vectorial generado por el pipeline de ingesta.
+# Se reconstruye con: python scripts/build_index.py
+# Los documentos de origen (data/raw, data/processed) sí se versionan.
+data/vector_store/
+
+# Directorio de trabajo temporal utilizado por las pruebas.
+.pytest_work/
+
 .streamlit/secrets.toml
 .env

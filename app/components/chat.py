@@ -31,12 +31,84 @@ Componente encargado de renderizar la interfaz conversacional
 de ALESSIA.
 """
 
+from pathlib import Path
+from typing import Any
+
 import streamlit as st
 
 from app.config import (
     ALESSIA_AVATAR_PATH,
     USER_AVATAR_PATH,
 )
+
+
+WELCOME_MESSAGE = (
+    "¡Hola, vecino! 👋\n\n"
+    "Soy **ALESSIA**, tu asistente especializada en "
+    "gestión del riesgo de desastres para la comuna de Valdivia.\n\n"
+    "Puedo ayudarte a consultar información oficial sobre "
+    "planes comunales, amenazas, emergencias, zonas de riesgo "
+    "y medidas de preparación.\n\n"
+    "¿En qué puedo ayudarte hoy?"
+)
+
+
+def _build_sources_markdown(
+    sources: list[dict[str, Any]],
+) -> str:
+    """
+    Construye el detalle de fuentes consultadas para una respuesta.
+
+    Parameters
+    ----------
+    sources : list[dict[str, Any]]
+        Fragmentos utilizados durante la generación de la respuesta.
+
+    Returns
+    -------
+    str
+        Detalle de fuentes en formato Markdown.
+    """
+
+    lines = []
+
+    for source in sources:
+
+        origin = str(
+            source.get("source", "")
+        )
+
+        title = str(
+            source.get("title", "")
+        )
+
+        # Se muestra únicamente el nombre del archivo para no exponer
+        # rutas internas del servidor donde se ejecuta la aplicación.
+        label = (
+            Path(origin).name
+            or title
+            or "Documento oficial"
+        )
+
+        index = source.get(
+            "chunk_index"
+        )
+
+        score = source.get(
+            "rerank_score"
+        )
+
+        detail = f"- **{label}**"
+
+        if index is not None:
+            detail += f" · fragmento {index}"
+
+        if score is not None:
+            detail += f" · relevancia {score:.2f}"
+
+        lines.append(detail)
+
+    return "\n".join(lines)
 
 
 def render_chat(agent_service):
@@ -59,18 +131,10 @@ def render_chat(agent_service):
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": (
-                    "¡Hola, vecino! 👋\n\n"
-                    "Soy **ALESSIA**, tu asistente especializada en "
-                    "gestión del riesgo de desastres para la comuna de Valdivia.\n\n"
-                    "Puedo ayudarte a consultar información oficial sobre "
-                    "planes comunales, amenazas, emergencias, zonas de riesgo "
-                    "y medidas de preparación.\n\n"
-                    "¿En qué puedo ayudarte hoy?"
-                ),
+                "content": WELCOME_MESSAGE,
             }
         ]
-        
+
     # Mostrar historial existente.
     for message in st.session_state.messages:
 
@@ -84,9 +148,21 @@ def render_chat(agent_service):
             message["role"],
             avatar=avatar,
         ):
-            st.write(
+            st.markdown(
                 message["content"]
             )
+
+            # Las respuestas conservan las fuentes utilizadas.
+            sources = message.get(
+                "sources"
+            )
+
+            if sources:
+                st.expander(
+                    "📄 Fuentes consultadas"
+                ).markdown(
+                    _build_sources_markdown(sources)
+                )
 
     # Capturar nueva consulta.
     question = st.chat_input(
@@ -108,19 +184,20 @@ def render_chat(agent_service):
             "user",
             avatar=str(USER_AVATAR_PATH),
         ):
-            st.write(question)
+            st.markdown(question)
 
         # Ejecutar el pipeline RAG.
         with st.spinner(
             "ALESSIA está analizando la información oficial..."
         ):
-            answer = agent_service.ask(question)
+            result = agent_service.ask(question)
 
-        # Guardar respuesta del asistente.
+        # Guardar respuesta del asistente junto con sus fuentes.
         st.session_state.messages.append(
             {
                 "role": "assistant",
-                "content": answer,
+                "content": result.answer,
+                "sources": result.sources,
             }
         )
 
@@ -129,4 +206,14 @@ def render_chat(agent_service):
             "assistant",
             avatar=str(ALESSIA_AVATAR_PATH),
         ):
-            st.write(answer)
+            st.markdown(
+                result.answer
+            )
+
+            # Mantiene la trazabilidad hacia la documentación utilizada.
+            if result.sources:
+                st.expander(
+                    "📄 Fuentes consultadas"
+                ).markdown(
+                    _build_sources_markdown(result.sources)
+                )
