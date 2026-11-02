@@ -288,3 +288,98 @@ def test_agent_service_treats_hypothetical_as_regular_query():
     assert "no encontré información" in result.answer.lower()
 
     mock_retrieve.assert_called_once()
+
+
+def test_agent_service_answers_greeting_without_pipeline():
+    """Un saludo no se busca en los planes de emergencia.
+
+    Buscarlo produce una negativa que hace parecer que el sistema no
+    entendió nada, aunque técnicamente sea correcto.
+    """
+
+    with patch.object(
+        AgentService, "_retrieve_context"
+    ) as mock_retrieve, patch.object(
+        AgentService, "_generate_answer"
+    ) as mock_generate:
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        result = service.ask("hola")
+
+    assert "Soy ALESSIA" in result.answer
+    assert result.sources == []
+
+    mock_retrieve.assert_not_called()
+    mock_generate.assert_not_called()
+
+
+def test_agent_service_answers_identity_question():
+    """La pregunta por la identidad se responde sin inventar personalidad."""
+
+    with patch.object(
+        AgentService, "_retrieve_context"
+    ) as mock_retrieve:
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        result = service.ask("¿Eres valdiviana?")
+
+    assert "No soy una persona" in result.answer
+    assert result.sources == []
+
+    mock_retrieve.assert_not_called()
+
+
+def test_agent_service_answers_capabilities_question():
+    """Saber qué puede hacer es parte de usar el asistente."""
+
+    with patch.object(
+        AgentService, "_retrieve_context"
+    ) as mock_retrieve:
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        result = service.ask("¿Qué puedes hacer?")
+
+    assert "planes de emergencia" in result.answer
+
+    mock_retrieve.assert_not_called()
+
+
+def test_greeting_with_real_question_goes_to_pipeline():
+    """Un saludo con una consulta adentro sigue siendo una consulta.
+
+    Es el caso que rompe la detección naive por "contiene hola": quien
+    escribe esto necesita información, no un saludo de vuelta.
+    """
+
+    with patch.object(
+        AgentService, "_retrieve_context", return_value=[]
+    ) as mock_retrieve:
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        result = service.ask(
+            "hola, ¿qué hago si hay un tsunami?"
+        )
+
+    assert "no encontré información" in result.answer.lower()
+
+    mock_retrieve.assert_called_once()
