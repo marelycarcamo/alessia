@@ -24,7 +24,6 @@ Proyecto:
     en la comuna de Valdivia.
 """
 
-import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -38,6 +37,11 @@ from src.processing.llm_client import LLMProviderError
 from src.processing.reranker import rerank_chunks
 from src.processing.retriever import retrieve_context
 from src.processing.vector_store import get_or_create_collection
+from src.services.conversation import (
+    CONVERSATIONAL_ANSWERS,
+    detect_conversational_intent,
+    normalize_text,
+)
 
 
 @dataclass
@@ -130,21 +134,6 @@ EMERGENCY_ANSWER = (
 )
 
 
-def _normalize_text(text: str) -> str:
-    """Pasa el texto a minúsculas y sin tildes para comparar términos."""
-
-    decomposed = unicodedata.normalize(
-        "NFKD",
-        text.lower(),
-    )
-
-    return "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
-    )
-
-
 def looks_like_emergency(question: str) -> bool:
     """
     Indica si la consulta describe una emergencia en curso.
@@ -154,7 +143,7 @@ def looks_like_emergency(question: str) -> bool:
     hacerlo mejor, pero agregaría latencia justo donde no la hay.
     """
 
-    text = _normalize_text(question)
+    text = normalize_text(question)
 
     has_hazard = any(
         hazard in text
@@ -273,6 +262,10 @@ class AgentService:
         Las consultas que describen una emergencia en curso se responden
         con un protocolo fijo, sin recuperar contexto ni llamar al
         modelo de lenguaje.
+
+        Los mensajes conversacionales (saludos, identidad, capacidades,
+        agradecimientos) se responden igual: de forma determinista y sin
+        consultar la documentación.
         """
 
         # Se resuelve antes de recuperar contexto y antes de llamar al
@@ -282,6 +275,22 @@ class AgentService:
 
             return RAGAnswer(
                 answer=EMERGENCY_ANSWER,
+                sources=[],
+            )
+
+        # Los mensajes conversacionales tampoco necesitan documentos: un
+        # saludo o una pregunta sobre la identidad del asistente no están
+        # en ningún plan de emergencia, y buscarlos produce una negativa
+        # que hace parecer que el sistema no entendió nada.
+        intent = detect_conversational_intent(
+            question,
+            EMERGENCY_HAZARDS,
+        )
+
+        if intent is not None:
+
+            return RAGAnswer(
+                answer=CONVERSATIONAL_ANSWERS[intent],
                 sources=[],
             )
 
