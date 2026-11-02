@@ -383,3 +383,107 @@ def test_greeting_with_real_question_goes_to_pipeline():
     assert "no encontré información" in result.answer.lower()
 
     mock_retrieve.assert_called_once()
+
+
+def test_agent_service_retries_with_previous_question():
+    """Un seguimiento sin tema propio se reencuentra con el turno anterior.
+
+    Caso medido: "Qué raro, tengo entendido que hay vías de evacuación..."
+    después de una pregunta sobre tsunamis. Sin el turno anterior, el mejor
+    fragmento quedó en 1,8 % de pertinencia y el sistema negó información
+    que el plan sí contiene. Anteponiendo la pregunta previa, tres
+    fragmentos superaron el umbral.
+    """
+
+    irrelevante = Mock(
+        document_id="doc-1",
+        chunk_index=1,
+        metadata={
+            "rerank_probability": 0.018,
+        },
+    )
+
+    relevante = Mock(
+        document_id="doc-1",
+        chunk_index=61,
+        metadata={
+            "rerank_probability": 0.63,
+        },
+    )
+
+    with patch.object(
+        AgentService,
+        "_retrieve_context",
+        side_effect=[[irrelevante], [relevante]],
+    ) as mock_retrieve, patch.object(
+        AgentService,
+        "_rerank_chunks",
+        side_effect=lambda question, chunks: chunks,
+    ), patch.object(
+        AgentService,
+        "_generate_answer",
+        return_value="El plan identifica 25 puntos de encuentro.",
+    ):
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        result = service.ask(
+            "¿y las vías de evacuación?",
+            "¿Hay plan de emergencia ante tsunami en la costa?",
+        )
+
+    assert "25 puntos de encuentro" in result.answer
+
+    assert mock_retrieve.call_count == 2
+
+    segunda_consulta = mock_retrieve.call_args_list[1].args[0]
+
+    assert "tsunami" in segunda_consulta
+    assert "vías de evacuación" in segunda_consulta
+
+
+def test_agent_service_does_not_retry_when_first_search_works():
+    """El reintento solo ocurre cuando la primera búsqueda no sirve.
+
+    Repetir la búsqueda siempre costaría latencia en todas las consultas
+    para arreglar una minoría.
+    """
+
+    relevante = Mock(
+        document_id="doc-1",
+        chunk_index=3,
+        metadata={
+            "rerank_probability": 0.92,
+        },
+    )
+
+    with patch.object(
+        AgentService,
+        "_retrieve_context",
+        return_value=[relevante],
+    ) as mock_retrieve, patch.object(
+        AgentService,
+        "_rerank_chunks",
+        side_effect=lambda question, chunks: chunks,
+    ), patch.object(
+        AgentService,
+        "_generate_answer",
+        return_value="La alcaldesa convoca al COGRID.",
+    ):
+
+        service = AgentService(
+            collection=Mock(),
+            embedding_model=Mock(),
+            reranker_model=Mock(),
+        )
+
+        service.ask(
+            "¿Quién convoca al COGRID Comunal?",
+            "¿Hay plan de tsunami?",
+        )
+
+    assert mock_retrieve.call_count == 1

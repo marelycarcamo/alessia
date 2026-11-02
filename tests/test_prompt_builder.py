@@ -93,3 +93,23 @@ def test_build_prompt_respects_token_budget():
     prompt = build_prompt("Pregunta", [])
 
     assert len(prompt) < 3800
+
+
+def test_prompt_no_permite_negar_el_corpus_completo():
+    """El modelo no puede afirmar que la documentación no trata un tema.
+
+    Solo recibe tres fragmentos, no el documento completo. Con la
+    instrucción anterior ("si la respuesta no está en la documentación,
+    dilo claramente") negó información que el plan de tsunami sí contenía:
+    un vecino preguntó por el plan y la respuesta aseguró que no había
+    zonas de evacuación ni puntos de encuentro, cuando el documento
+    detalla 25 puntos de encuentro y más de 30 vías de evacuación.
+
+    Una negativa falsa es tan peligrosa como una invención, y más difícil
+    de detectar porque suena prudente.
+    """
+
+    prompt = build_prompt("Pregunta", [])
+
+    assert "fragmentos seleccionados" in prompt
+    assert "sin\n   afirmar que la documentación no lo trata" in prompt

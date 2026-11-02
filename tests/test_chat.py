@@ -127,7 +127,8 @@ def test_render_chat_processes_user_question():
     )
 
     agent_service.ask.assert_called_once_with(
-        question
+        question,
+        None,
     )
 
     # El historial contiene el saludo inicial, la consulta del usuario
@@ -168,7 +169,8 @@ def test_render_chat_reuses_existing_history():
     assert len(history) == 3
 
     agent_service.ask.assert_called_once_with(
-        question
+        question,
+        None,
     )
 
 

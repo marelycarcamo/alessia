@@ -175,6 +175,18 @@ def render_chat(agent_service):
 
     if question:
 
+        # Pregunta anterior del usuario, si existe. Se usa solo para
+        # reintentar la búsqueda cuando el mensaje actual, por sí solo,
+        # no recupera fragmentos utilizables.
+        previous_question = next(
+            (
+                message["content"]
+                for message in reversed(st.session_state.messages)
+                if message["role"] == "user"
+            ),
+            None,
+        )
+
         # Guardar mensaje del usuario.
         st.session_state.messages.append(
             {
@@ -194,7 +206,10 @@ def render_chat(agent_service):
         with st.spinner(
             "ALESSIA está analizando la información oficial..."
         ):
-            result = agent_service.ask(question)
+            result = agent_service.ask(
+                question,
+                previous_question,
+            )
 
         # Guardar respuesta del asistente junto con sus fuentes.
         st.session_state.messages.append(
