@@ -1,38 +1,8 @@
 
-![ALESSIA](https://raw.githubusercontent.com/marelycarcamo/Challenge-AluraAgente-ONE-IA-FOR-TECH/fa5bcde7d6d9b214459f2a04a5aac1c49a3159ba/app/assets/images/alessia_img_2.png)
+![ALESSIA](https://raw.githubusercontent.com/marelycarcamo/alessia/main/app/assets/images/alessia_img_2.png)
 ---
 
-# Tabla de Indice
-
-- [Tabla de Indice](#tabla-de-indice)
-	- [1. ¿PorquÉ nace ALESSIA?](#1-porqué-nace-alessia)
-	- [¿Qué es ALESSIA?](#qué-es-alessia)
-	- [3. Qué aporta ALESSIA?](#3-qué-aporta-alessia)
-	- [4. ¿Cuál es el proyecto detrás de ALESSIA?](#4-cuál-es-el-proyecto-detrás-de-alessia)
-	- [5. Ciclo de interacción con ALESSIA](#5-ciclo-de-interacción-con-alessia)
-	- [6. ALESSIA en acción](#6-alessia-en-acción)
-		- [Captura 1: Saludo inicial.](#captura-1-saludo-inicial)
-	- [7. Arquitectura del sistema](#7-arquitectura-del-sistema)
-		- [Capas de Arquitectura](#capas-de-arquitectura)
-	- [8. Flujo del pipeline RAG](#8-flujo-del-pipeline-rag)
-	- [9. Estructura del proyecto](#9-estructura-del-proyecto)
-	- [10. Tecnologías utilizadas](#10-tecnologías-utilizadas)
-	- [11. Características implementadas (Versión 1.0)](#11-características-implementadas-versión-10)
-		- [Funcionalidades existentes](#funcionalidades-existentes)
-	- [12. Instalación y ejecución](#12-instalación-y-ejecución)
-		- [1. Clonar el repositorio](#1-clonar-el-repositorio)
-		- [2. Crear y activar el entorno virtual](#2-crear-y-activar-el-entorno-virtual)
-		- [3. Instalar dependencias](#3-instalar-dependencias)
-		- [4. Configurar la API KEY](#4-configurar-la-api-key)
-		- [5. Construir el índice vectorial](#5-construir-el-índice-vectorial)
-		- [6. Ejecutar ALESSIA](#6-ejecutar-alessia)
-		- [7. Ejecutar las pruebas](#7-ejecutar-las-pruebas)
-	- [13. Roadmap](#13-roadmap)
-	- [14. Author \& Licence](#14-author--licence)
-
-
-
----
+> **Versión actual: 1.1** — pipeline RAG con proveedor configurable, recuperación en español y control de relevancia.
 
 <p align="center">
 	<a href="https://alessia.streamlit.app/">
@@ -101,13 +71,14 @@ Sus principales aportes son:
 
 **ALESSIA** es un proyecto concebido para evolucionar progresivamente desde un asistente documental basado en arquitectura RAG hacia una plataforma inteligente de apoyo a la gestión del riesgo de desastres.
 
-La versión actual (1.0) establece las bases del sistema mediante un pipeline completo de recuperación y generación de información utilizando documentación oficial. Sobre esta arquitectura se proyecta la incorporación de nuevas capacidades orientadas a mejorar la experiencia de los usuarios, fortalecer la trazabilidad de la información y facilitar la gestión del conocimiento institucional.
+La versión actual (1.1) consolida un pipeline completo de recuperación y generación de información sobre documentación oficial, con controles de calidad en la recuperación: modelos entrenados en español, umbral de relevancia y una ruta de respuesta inmediata para emergencias en curso. Sobre esta arquitectura se proyecta la incorporación de nuevas capacidades orientadas a mejorar la experiencia de los usuarios, fortalecer la trazabilidad de la información y facilitar la gestión del conocimiento institucional.
 
 Su diseño modular permite incorporar futuras funcionalidades sin modificar la arquitectura principal del sistema, favoreciendo su evolución de manera gradual y mantenible.
 
 | Versión | Enfoque                                                                                                            |
 | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | **1.0** | Asistente documental basado en RAG.                                                                                |
+| **1.1** | Robustez del motor: proveedor configurable, recuperación en español, umbral de relevancia y ruta de emergencia.    |
 | **2.0** | Memoria conversacional, trazabilidad visible, metadatos e integración con APIs oficiales.                          |
 | **3.0** | Plataforma de apoyo a emergencias con perfiles de usuario y administrador, y motor de protocolos basado en reglas. |
 
@@ -153,7 +124,7 @@ Su diseño modular permite incorporar futuras funcionalidades sin modificar la a
 La estructura del proyecto sigue una separación de responsabilidades que permite mantener el código modular, facilitar las pruebas y favorecer la evolución futura de ALESSIA.
 
 ```
-Challenge_Alura_Agent/
+alessia/
 ├── .streamlit/
 ├── app/
 │   ├── assets/
@@ -268,7 +239,7 @@ Challenge_Alura_Agent/
 ---
 ## 10. Tecnologías utilizadas
 
-[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)[![Streamlit](https://img.shields.io/badge/Streamlit-1.57.0-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-5.6.0-yellow?logo=sentence_transformers)](https://www.sbert.net/)[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Database-purple?logo=chromadb)](https://www.trychroma.com/)[![OpenRouter](https://img.shields.io/badge/OpenRouter-LLM_API-black?logo=openrouter)](https://openrouter.ai/)[![Pytest](https://img.shields.io/badge/Pytest-9.1.1-green?logo=pytest)](https://docs.pytest.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)[![Streamlit](https://img.shields.io/badge/Streamlit-1.57.0-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-5.6.0-yellow?logo=sentence_transformers)](https://www.sbert.net/)[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Database-purple?logo=chromadb)](https://www.trychroma.com/)[![OpenRouter](https://img.shields.io/badge/OpenRouter-LLM_API-black?logo=openrouter)](https://openrouter.ai/)[![NVIDIA](https://img.shields.io/badge/NVIDIA-LLM_API-76B900?logo=nvidia&logoColor=white)](https://build.nvidia.com/)[![Pytest](https://img.shields.io/badge/Pytest-9.1.1-green?logo=pytest)](https://docs.pytest.org/)
 
 
 
@@ -284,16 +255,28 @@ Challenge_Alura_Agent/
 
 
 ---
-## 11. Características implementadas (Versión 1.0)
+## 11. Características implementadas (Versión 1.1)
 
-![Infografía Gestión de Desastres](docs\README\infograph\IA_para_Gestión_de_Desastres.png)
+![Infografía Gestión de Desastres](docs/README/infograph/IA_para_Gestión_de_Desastres.png)
 
 ---
 
 ### Funcionalidades existentes
-ALESSIA cuenta actualmente con una versión 1.0 funcional que implementa un pipeline RAG completo para responder consultas utilizando información proveniente de documentos institucionales oficiales.
 
-![Diagrama de Funcionalidades Implementadass 1.0](docs/README/diagrams/diagrama_funciones_implementadas.png)
+ALESSIA cuenta actualmente con una versión 1.1 funcional que implementa un pipeline RAG completo para responder consultas utilizando información proveniente de documentos institucionales oficiales.
+
+![Diagrama de Funcionalidades Implementadas 1.0](docs/README/diagrams/diagrama_funciones_implementadas.png)
+
+### Novedades de la versión 1.1
+
+* **Proveedor de lenguaje configurable** entre OpenRouter y NVIDIA desde el archivo `.env`, con detección de respuestas vacías y de respuestas truncadas, que son las más peligrosas porque parecen completas.
+* **Recuperación en español:** los modelos de embeddings y de reranking están entrenados en el idioma de los documentos. Con modelos solo en inglés, el sistema no fallaba: simplemente dejaba de ordenar por utilidad.
+* **Umbral de relevancia:** si ningún fragmento supera la probabilidad mínima configurada, ALESSIA responde que no encontró información en lugar de construir una respuesta sobre material que no la contiene.
+* **Pertinencia visible:** las fuentes se muestran con su porcentaje de pertinencia, en lugar de un puntaje interno sin escala interpretable.
+* **Limpieza de cabeceras repetidas:** las cabeceras y pies de página que se repiten en cada página se eliminan antes de fragmentar el texto, para que no compitan con el contenido real durante la búsqueda.
+* **Ruta de emergencia inmediata:** las consultas que describen una emergencia en curso se responden con un protocolo fijo, sin depender del índice vectorial ni del proveedor del modelo.
+* **Instrucciones del prompt reducidas** en cerca de un 58 %, con un test que impide que vuelvan a crecer sin control.
+* **Suite de 53 pruebas** y `scripts/evaluate_retrieval.py` para medir la recuperación de forma repetible.
 
 ---
 
@@ -302,8 +285,8 @@ ALESSIA cuenta actualmente con una versión 1.0 funcional que implementa un pipe
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/marelycarcamo/Challenge-AluraAgente-ONE-IA-FOR-TECH.git
-cd Challenge-AluraAgente-ONE-IA-FOR-TECH
+git clone https://github.com/marelycarcamo/alessia.git
+cd alessia
 ```
 ### 2. Crear y activar el entorno virtual
 
@@ -368,6 +351,16 @@ streamlit run app/streamlit_app.py
 python -m pytest
 ```
 
+### 8. Medir la recuperación
+
+```bash
+python scripts/evaluate_retrieval.py
+```
+
+Ejecuta un conjunto corto de consultas de referencia contra el índice real e informa, para cada una, si el fragmento esperado llega al top-k y con qué pertinencia.
+
+Es una prueba de humo, no una evaluación completa: sirve para detectar regresiones cuando se cambian modelos, documentos o la estrategia de fragmentación.
+
 ---
 
 ## 13. Roadmap
@@ -384,4 +377,4 @@ ALESSIA está diseñada para evolucionar progresivamente desde un asistente docu
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Marely_Cárcamo-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/marely/)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
-![Logo ALESSIA](https://raw.githubusercontent.com/marelycarcamo/Challenge-AluraAgente-ONE-IA-FOR-TECH/main/app/assets/logo/alessia_logo.png)
+![Logo ALESSIA](https://raw.githubusercontent.com/marelycarcamo/alessia/main/app/assets/logo/alessia_logo.png)
