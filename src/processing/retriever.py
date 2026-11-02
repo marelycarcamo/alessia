@@ -29,17 +29,23 @@ La capa Retriever evita que el resto del pipeline dependa directamente
 de la estructura interna del vector store.
 """
 
-from chromadb.api.models.Collection import Collection
-from sentence_transformers import SentenceTransformer
+from typing import TYPE_CHECKING
 
 from src.models.chunk import Chunk
 from src.processing.vector_store import search_chunks
 
+if TYPE_CHECKING:
+    # Solo para anotaciones: ver la nota en embedder.py. Se citan entre
+    # comillas porque este módulo no puede usar el import diferido de
+    # anotaciones (tiene una cadena suelta antes de los imports).
+    from chromadb.api.models.Collection import Collection
+    from sentence_transformers import SentenceTransformer
+
 
 def retrieve_context(
     query: str,
-    collection: Collection,
-    model: SentenceTransformer,
+    collection: "Collection",
+    model: "SentenceTransformer",
     k: int = 5,
 ) -> list[Chunk]:
     """

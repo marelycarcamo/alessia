@@ -24,12 +24,11 @@ Proyecto:
     en la comuna de Valdivia.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
-
-from chromadb.api.models.Collection import Collection
-from sentence_transformers import CrossEncoder, SentenceTransformer
+from typing import TYPE_CHECKING, Any
 
 from src import settings
 from src.processing.generation import generate_answer
@@ -42,6 +41,11 @@ from src.services.conversation import (
     detect_conversational_intent,
     normalize_text,
 )
+
+if TYPE_CHECKING:
+    # Solo para anotaciones: ver la nota en embedder.py.
+    from chromadb.api.models.Collection import Collection
+    from sentence_transformers import CrossEncoder, SentenceTransformer
 
 
 @dataclass
@@ -216,6 +220,11 @@ class AgentService:
             collection_name="alessia_collection",
             vector_store_path=vector_store_path,
         )
+
+        # Import diferido: cargar sentence_transformers arrastra torch y
+        # suma decenas de segundos a cualquier import del proyecto. Aquí
+        # es el único punto donde de verdad se necesita.
+        from sentence_transformers import CrossEncoder, SentenceTransformer
 
         # Los modelos se leen de settings y no se escriben aquí: el
         # índice vectorial se construye con el mismo modelo, así que

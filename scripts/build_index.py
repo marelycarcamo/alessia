@@ -45,8 +45,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from sentence_transformers import SentenceTransformer  # noqa: E402
-
 from src import settings  # noqa: E402
 from src.ingestion.loaders import load_file  # noqa: E402
 from src.processing.chunker import create_chunks  # noqa: E402
@@ -215,6 +213,21 @@ def relative_source(document_path: Path) -> str:
         return str(document_path)
 
 
+def load_embedding_model(model_name: str):
+    """
+    Carga el modelo de embeddings indicado.
+
+    El import va dentro de la función a propósito: sentence_transformers
+    arrastra torch y suma decenas de segundos al importar el módulo. Los
+    tests de indexación no necesitan el modelo real, así que no tienen por
+    qué pagar esa carga.
+    """
+
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer(model_name)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """
     Ejecuta el proceso completo de construcción del índice.
@@ -242,7 +255,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     print(f"[1/5] Documentos encontrados: {len(documents)}")
 
-    model = SentenceTransformer(args.model)
+    model = load_embedding_model(args.model)
 
     args.store.mkdir(parents=True, exist_ok=True)
 

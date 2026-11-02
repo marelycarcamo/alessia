@@ -7,13 +7,17 @@ La adaptación hacia objetos de dominio (Chunk) se realiza en capas
 superiores del pipeline.
 """
 
-from pathlib import Path
+from __future__ import annotations
 
-import chromadb
-from chromadb.api.models.Collection import Collection
-from sentence_transformers import SentenceTransformer
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from src.models.chunk import Chunk
+
+if TYPE_CHECKING:
+    # Solo para anotaciones: ver la nota en embedder.py.
+    from chromadb.api.models.Collection import Collection
+    from sentence_transformers import SentenceTransformer
 
 
 def get_or_create_collection(
@@ -33,6 +37,11 @@ def get_or_create_collection(
     Returns:
         Colección activa de ChromaDB.
     """
+
+    # Import diferido: chromadb arrastra dependencias pesadas y este
+    # módulo se importa desde toda la aplicación, incluidos los tests que
+    # nunca tocan un vector store.
+    import chromadb
 
     client = chromadb.PersistentClient(
         path=str(vector_store_path)

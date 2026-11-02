@@ -18,9 +18,17 @@ Proyecto: ALESSIA
 
 """
 
-from sentence_transformers import SentenceTransformer
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from src.models.chunk import Chunk
+
+if TYPE_CHECKING:
+    # Solo para anotaciones de tipo. Importar sentence_transformers aquí
+    # arrastra torch y suma decenas de segundos a cualquier import del
+    # proyecto, incluidos los tests que nunca usan un modelo.
+    from sentence_transformers import SentenceTransformer
 
 
 def embed_chunk(

@@ -25,11 +25,16 @@ Proyecto:
     para la comuna de Valdivia.
 """
 
-import math
+from __future__ import annotations
 
-from sentence_transformers import CrossEncoder
+import math
+from typing import TYPE_CHECKING
 
 from src.models.chunk import Chunk
+
+if TYPE_CHECKING:
+    # Solo para anotaciones: ver la nota en embedder.py.
+    from sentence_transformers import CrossEncoder
 
 
 def _sigmoid(value: float) -> float:

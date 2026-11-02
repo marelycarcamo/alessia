@@ -27,8 +27,7 @@ Proyecto:
 """
 
 
-from chromadb.api.models.Collection import Collection
-from sentence_transformers import SentenceTransformer
+from typing import Any
 
 from src.models.chunk import Chunk
 from src.processing.vector_store import search_chunks
@@ -36,8 +35,8 @@ from src.processing.vector_store import search_chunks
 
 def retrieve_context(
     query: str,
-    collection: Collection,
-    model: SentenceTransformer,
+    collection: Any,
+    model: Any,
     k: int = 5,
 ) -> list[Chunk]:
     """

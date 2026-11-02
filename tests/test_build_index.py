@@ -91,7 +91,7 @@ def _run_build(
         arguments.append("--recreate")
 
     with patch.object(
-        build_index, "SentenceTransformer", FakeEmbeddingModel
+        build_index, "load_embedding_model", FakeEmbeddingModel
     ):
         return build_index.main(arguments)
 
