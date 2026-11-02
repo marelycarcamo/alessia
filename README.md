@@ -165,7 +165,6 @@ alessia/
 │   │   │   ├── diagrama_capas_de_arquitectura.png
 │   │   │   ├── diagrama_flujo_de_procesamiento_RAG.png
 │   │   │   ├── diagrama_funciones_implementadas.png
-│   │   │   ├── diagrama_roadmap.png
 │   │   │   └── diagrams_ciclo_conversacional.png
 │   │   ├── infograph/
 │   │   │   └── IA_para_Gestión_de_Desastres.png
@@ -367,7 +366,15 @@ Es una prueba de humo, no una evaluación completa: sirve para detectar regresio
 
 ALESSIA está diseñada para evolucionar progresivamente desde un asistente documental basado en RAG hacia una plataforma inteligente de apoyo a la gestión del riesgo de desastres.
 
-![Roadmap](docs/README/diagrams/diagrama_roadmap.png)
+El plan de trabajo está organizado en tres fases, ordenadas por relación entre esfuerzo y beneficio:
+
+| Fase | Enfoque | Alcance |
+| ---- | ------- | ------- |
+| **1** | Robustez de conexión | Reintentos con retroceso exponencial y validación del proveedor al iniciar. |
+| **2** | Conocimiento e identidad | Nuevas fuentes documentales, fragmentación que respete listas y tablas, memoria conversacional e inicio de sesión con Google. |
+| **3** | Calidad de respuesta | Agente revisor, RAG correctivo e integración con APIs de información pública. |
+
+Cada fase se cierra con la suite de pruebas en verde y una medición de recuperación. El detalle, los motivos y la deuda técnica conocida están en **[docs/06. Roadmap.md](docs/06.%20Roadmap.md)**.
 
 ---
 

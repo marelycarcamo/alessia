@@ -19,12 +19,17 @@ Proyecto:
 """
 
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
+import chromadb
 import numpy as np
 
 from src.models.chunk import Chunk
 from src.processing.vector_store import index_chunks
+
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_index_chunks():
@@ -80,3 +85,27 @@ def test_index_chunks():
             }
         ],
     )
+
+
+def test_indice_versionado_contiene_fragmentos():
+    """El índice que viaja al despliegue no puede estar vacío.
+
+    Streamlit Community Cloud no tiene un paso de compilación donde
+    ejecutar ``scripts/build_index.py``: el índice tiene que viajar en el
+    repositorio.
+
+    Si viaja vacío, la aplicación arranca sin documentos y responde
+    "No encontré información" a cualquier consulta, **sin mostrar ningún
+    error**. Es un fallo silencioso y por eso esta prueba existe: impide
+    publicar un índice vacío, que es indistinguible de un motor roto.
+    """
+
+    client = chromadb.PersistentClient(
+        path=str(REPO_ROOT / "data" / "vector_store"),
+    )
+
+    collection = client.get_or_create_collection(
+        "alessia_collection",
+    )
+
+    assert collection.count() > 0

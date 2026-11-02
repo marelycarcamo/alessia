@@ -271,7 +271,20 @@ notebooks/data/vector_store/
 # Índice vectorial generado por el pipeline de ingesta.
 # Se reconstruye con: python scripts/build_index.py
 # Los documentos de origen (data/raw, data/processed) sí se versionan.
-data/vector_store*/
+# Índice vectorial: SÍ se versiona.
+#
+# Streamlit Community Cloud no tiene un paso de compilación donde ejecutar
+# scripts/build_index.py, así que el índice tiene que viajar en el
+# repositorio. Si no viaja, la aplicación arranca con la colección vacía y
+# responde "No encontré información" a cualquier consulta, sin ningún error
+# visible.
+#
+# Consecuencia: al cambiar documentos, modelos de embeddings o la
+# estrategia de fragmentación, hay que reindexar y volver a commitear.
+# Está documentado en docs/05. Despliegue.md.
+#
+# Los índices alternativos (pruebas, comparaciones) siguen ignorados.
+data/vector_store_*/
 
 # Directorio de trabajo temporal utilizado por las pruebas.
 .pytest_work/
