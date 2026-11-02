@@ -47,6 +47,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from sentence_transformers import SentenceTransformer  # noqa: E402
 
+from src import settings  # noqa: E402
 from src.ingestion.loaders import load_file  # noqa: E402
 from src.processing.chunker import create_chunks  # noqa: E402
 from src.processing.cleaner import clean_document  # noqa: E402
@@ -62,7 +63,10 @@ DEFAULT_STORE_DIR = PROJECT_ROOT / "data" / "vector_store"
 
 DEFAULT_COLLECTION = "alessia_collection"
 
-DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+# El modelo de embeddings debe coincidir con el que usa el pipeline en
+# tiempo de consulta (ver src/settings.py). Se toma de allí para que no
+# existan dos valores que puedan divergir.
+DEFAULT_EMBEDDING_MODEL = settings.EMBEDDING_MODEL
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".html", ".htm"}
 

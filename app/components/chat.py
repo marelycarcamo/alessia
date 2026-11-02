@@ -94,8 +94,8 @@ def _build_sources_markdown(
             "chunk_index"
         )
 
-        score = source.get(
-            "rerank_score"
+        probability = source.get(
+            "rerank_probability"
         )
 
         detail = f"- **{label}**"
@@ -103,8 +103,12 @@ def _build_sources_markdown(
         if index is not None:
             detail += f" · fragmento {index}"
 
-        if score is not None:
-            detail += f" · relevancia {score:.2f}"
+        # Se muestra la probabilidad y no el puntaje crudo del modelo.
+        # Un valor como "relevancia -1.32" parece un error del sistema:
+        # es un logit sin escala interpretable. La probabilidad sí se
+        # entiende y además es la que decide el umbral de contexto.
+        if probability is not None:
+            detail += f" · pertinencia {probability:.0%}"
 
         lines.append(detail)
 

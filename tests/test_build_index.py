@@ -200,3 +200,17 @@ def test_collect_documents_filters_unsupported_files(workspace_tmp):
         "anexo.docx",
         "plan-comunal.html",
     ]
+
+
+def test_default_embedding_model_matches_runtime_settings():
+    """El índice y la consulta deben usar el mismo modelo de embeddings.
+
+    Si divergen, la búsqueda compara vectores generados por modelos
+    distintos. No falla con un error: devuelve fragmentos sin relación
+    con la consulta, que es un modo de fallo mucho más difícil de
+    detectar. Por eso el valor se lee desde un único lugar.
+    """
+
+    from src import settings
+
+    assert build_index.DEFAULT_EMBEDDING_MODEL == settings.EMBEDDING_MODEL

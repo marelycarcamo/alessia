@@ -238,7 +238,8 @@ Challenge_Alura_Agent/
 │   └── settings.py
 ├── scripts/
 │   ├── __init__.py
-│   └── build_index.py
+│   ├── build_index.py
+│   └── evaluate_retrieval.py
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py
@@ -272,14 +273,14 @@ Challenge_Alura_Agent/
 
 
 
-| Tecnología            | Uso en ALESSIA               |
-| --------------------- | ---------------------------- |
-| Python                | Lenguaje principal           |
-| Streamlit             | Interfaz conversacional      |
-| Sentence Transformers | Embeddings y reranking       |
-| ChromaDB              | Almacenamiento vectorial     |
-| OpenRouter            | Acceso al modelo de lenguaje |
-| Pytest                | Pruebas automatizadas        |
+| Tecnología            | Uso en ALESSIA                                |
+| --------------------- | --------------------------------------------- |
+| Python                | Lenguaje principal                            |
+| Streamlit             | Interfaz conversacional                       |
+| Sentence Transformers | Embeddings y reranking                        |
+| ChromaDB              | Almacenamiento vectorial                      |
+| OpenRouter / NVIDIA   | Acceso al modelo de lenguaje (proveedor configurable) |
+| Pytest                | Pruebas automatizadas                         |
 
 
 ---
@@ -333,10 +334,18 @@ Copiar el archivo de ejemplo y completar la credencial:
 cp .env.example .env
 ```
 
-Las variables disponibles están documentadas en `.env.example`. La única obligatoria es:
+Las variables disponibles están documentadas en `.env.example`. La credencial obligatoria depende del proveedor elegido en `DEFAULT_PROVIDER`:
 
 ```env
+# Proveedor activo: "openrouter" o "nvidia"
+DEFAULT_PROVIDER=nvidia
+
+# Si DEFAULT_PROVIDER=openrouter
 OPENROUTER_API_KEY=tu_api_key
+
+# Si DEFAULT_PROVIDER=nvidia
+NVIDIA_API_KEY=tu_api_key
+NVIDIA_MODEL=minimaxai/minimax-m3.1-flash
 ```
 
 ### 5. Construir el índice vectorial
