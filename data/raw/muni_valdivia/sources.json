@@ -1,0 +1,63 @@
+{
+  "_nota": "Procedencia de los documentos oficiales que alimentan el índice. 'sha256' y 'bytes' identifican la versión exacta del archivo indexado; 'last_modified' es lo que informó el servidor al verificar el 2026-11-02. Antes de reindexar conviene comparar: si un hash cambió, el documento cambió en origen y hay que revisar qué se modificó antes de publicar respuestas nuevas.",
+  "_por_que": "Una URL puede servir contenido distinto mañana sin cambiar de dirección. El hash es lo que permite afirmar que el PDF del repositorio es el que se indexó.",
+  "verificado": "2026-11-02",
+  "organismo": "Ilustre Municipalidad de Valdivia",
+  "documentos": [
+    {
+      "archivo": "Plan-Comunal-de-Emergencia-2025-2.pdf",
+      "titulo": "Plan Comunal de Emergencia",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2025/11/Plan-Comunal-de-Emergencia-2025-2.pdf",
+      "bytes": 1256600,
+      "sha256": "562bffa58435ebfe3b47c393739ce189d89ca2d79dcad6ad75cf5151dfe3cb97",
+      "last_modified": "Thu, 06 Nov 2025 18:57:08 GMT"
+    },
+    {
+      "archivo": "2025_plan-amenaza-tsunami.pdf",
+      "titulo": "Plan por Amenaza: Tsunami",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2025/11/5.PLAN-POR-AMENAZA-TSUNAMI-2025.pdf",
+      "nombre_publicado": "5.PLAN-POR-AMENAZA-TSUNAMI-2025.pdf",
+      "bytes": 1856683,
+      "sha256": "c26a2c7d0af7e50597590aba621e3acd668468086ee43baefb667aefe2fcf0b7",
+      "last_modified": "Wed, 05 Nov 2025 21:37:57 GMT"
+    },
+    {
+      "archivo": "2025_plan-amenaza-remocion-en-masa.pdf",
+      "titulo": "Plan por Amenaza: Remoción en Masa",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2025/11/4.PLAN-POR-AMENAZA-REMOCIaON-EN-MASA-2025.pdf",
+      "nombre_publicado": "4.PLAN-POR-AMENAZA-REMOCIaON-EN-MASA-2025.pdf",
+      "bytes": 1431339,
+      "sha256": "e667d2c0465c50a7f499886b2a668ad21cff8b28d4352d224e94704506a9bb79",
+      "last_modified": "Wed, 05 Nov 2025 21:37:56 GMT",
+      "_observacion": "El nombre publicado tiene la 'Ó' convertida en 'a'. Es un defecto del origen, no de la copia local."
+    },
+    {
+      "archivo": "2025_plan-amenaza-incendio-forestal.pdf",
+      "titulo": "Plan por Amenaza: Incendio Forestal",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2025/11/2.PLAN-POR-AMENAZA-INCENDIO-FORESTAL-2025.pdf",
+      "nombre_publicado": "2.PLAN-POR-AMENAZA-INCENDIO-FORESTAL-2025.pdf",
+      "bytes": 1132482,
+      "sha256": "787e22853019b0e3155eee42fce17a669f114cb3ac0e01257c823a543f8809c5",
+      "last_modified": "Wed, 05 Nov 2025 21:38:00 GMT"
+    },
+    {
+      "archivo": "2025_plan-amenaza-inundacion-rio-calle-calle.pdf",
+      "titulo": "Plan por Amenaza: Inundación por Desborde del Río Calle Calle",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2025/11/PLAN-POR-AMENAZA-INUNDACION-RIO-CALLE-CALLE-2025-1_compressed.pdf",
+      "nombre_publicado": "PLAN-POR-AMENAZA-INUNDACION-RIO-CALLE-CALLE-2025-1_compressed.pdf",
+      "bytes": 2075050,
+      "sha256": "25ac278587698179a9e28066591f1603683fa33c6ad5e85977936b5cf62e49b7",
+      "last_modified": "Thu, 06 Nov 2025 20:03:47 GMT",
+      "_observacion": "El archivo que publica la municipalidad ya viene comprimido."
+    },
+    {
+      "archivo": "2025_plan-reduccion-riesgo-desastres.pdf",
+      "titulo": "Plan de Reducción del Riesgo de Desastres",
+      "url": "https://munivaldivia.cl/wp-content/uploads/2024/12/plan-de-reduccion-de-riesgos-de-desastres50466.pdf",
+      "nombre_publicado": "plan-de-reduccion-de-riesgos-de-desastres50466.pdf",
+      "bytes": 958489,
+      "sha256": "9c7a5dd3e781f5d754ac4c2c1e69fbe26afa95b40a27b6013e2cb7c1b541c14e",
+      "last_modified": "Tue, 31 Dec 2024 04:47:28 GMT"
+    }
+  ]
+}
